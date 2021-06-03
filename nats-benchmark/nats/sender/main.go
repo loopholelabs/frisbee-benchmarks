@@ -21,6 +21,7 @@ package main
 
 import (
 	"crypto/rand"
+	"fmt"
 	"github.com/loov/hrtime"
 	"github.com/nats-io/nats.go"
 	"log"
@@ -31,7 +32,7 @@ import (
 var complete = make(chan struct{})
 
 func main() {
-	nc, err := nats.Connect(os.Args[1])
+	nc, err := nats.Connect(fmt.Sprintf("nats://%s", os.Args[1]))
 	if err != nil {
 		panic(err)
 	}

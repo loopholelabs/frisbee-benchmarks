@@ -20,6 +20,7 @@ under the License.
 package main
 
 import (
+	"fmt"
 	"github.com/nats-io/nats.go"
 	"os"
 	"os/signal"
@@ -29,7 +30,7 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt)
 
-	nc, err := nats.Connect(os.Args[1])
+	nc, err := nats.Connect(fmt.Sprintf("nats://%s", os.Args[1]))
 	if err != nil {
 		panic(err)
 	}
