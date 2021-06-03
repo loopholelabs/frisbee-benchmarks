@@ -18,9 +18,7 @@ package main
 
 import (
 	"github.com/loophole-labs/frisbee"
-	"github.com/rs/zerolog"
 	"hash/crc32"
-	"io/ioutil"
 	"os"
 	"os/signal"
 )
@@ -59,9 +57,9 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt)
 
-	emptyLogger := zerolog.New(ioutil.Discard)
+	//emptyLogger := zerolog.New(ioutil.Discard)
 
-	c := frisbee.NewClient(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
+	c := frisbee.NewClient(os.Args[1], router)
 	err := c.Connect()
 	if err != nil {
 		panic(err)

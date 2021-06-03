@@ -20,9 +20,7 @@ import (
 	"crypto/rand"
 	"github.com/loophole-labs/frisbee"
 	"github.com/loov/hrtime"
-	"github.com/rs/zerolog"
 	"hash/crc32"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -51,9 +49,9 @@ func main() {
 
 	router[PUB] = handlePub
 
-	emptyLogger := zerolog.New(ioutil.Discard)
+	//emptyLogger := zerolog.New(ioutil.Discard)
 
-	c := frisbee.NewClient(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
+	c := frisbee.NewClient(os.Args[1], router)
 	err := c.Connect()
 	if err != nil {
 		panic(err)
