@@ -25,16 +25,28 @@ import (
 	"github.com/nats-io/nats.go"
 	"log"
 	"os"
+	"strconv"
 )
-
-const testSize = 100000
-const messageSize = 2048
-const runs = 100
 
 var complete = make(chan struct{})
 
 func main() {
 	nc, err := nats.Connect(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+
+	messageSize, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		panic(err)
+	}
+
+	testSize, err := strconv.Atoi(os.Args[3])
+	if err != nil {
+		panic(err)
+	}
+
+	runs, err := strconv.Atoi(os.Args[4])
 	if err != nil {
 		panic(err)
 	}
