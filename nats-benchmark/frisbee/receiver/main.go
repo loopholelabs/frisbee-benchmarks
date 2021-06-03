@@ -54,12 +54,13 @@ func handlePub(incomingMessage frisbee.Message, incomingContent []byte) (outgoin
 }
 
 func main() {
+
 	router := make(frisbee.ClientRouter)
 	router[PUB] = handlePub
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt)
 
-	c := frisbee.NewClient("127.0.0.1:8192", router)
+	c := frisbee.NewClient(os.Args[1], router)
 	err := c.Connect()
 	if err != nil {
 		panic(err)

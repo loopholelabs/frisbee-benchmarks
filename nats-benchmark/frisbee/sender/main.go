@@ -25,13 +25,12 @@ import (
 	"github.com/loov/hrtime"
 	"hash/crc32"
 	"log"
+	"os"
+	"strconv"
 )
 
 const PUB = uint32(1)
 const SUB = uint32(2)
-const testSize = 100000
-const messageSize = 2048
-const runs = 100
 
 var complete = make(chan struct{})
 
@@ -53,8 +52,23 @@ func main() {
 
 	router[PUB] = handlePub
 
-	c := frisbee.NewClient("127.0.0.1:8192", router)
+	c := frisbee.NewClient(os.Args[1], router)
 	err := c.Connect()
+	if err != nil {
+		panic(err)
+	}
+
+	messageSize, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		panic(err)
+	}
+
+	testSize, err := strconv.Atoi(os.Args[3])
+	if err != nil {
+		panic(err)
+	}
+
+	runs, err := strconv.Atoi(os.Args[4])
 	if err != nil {
 		panic(err)
 	}

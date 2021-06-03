@@ -24,6 +24,7 @@ import (
 	"github.com/loov/hrtime"
 	"github.com/nats-io/nats.go"
 	"log"
+	"os"
 )
 
 const testSize = 100000
@@ -33,7 +34,10 @@ const runs = 100
 var complete = make(chan struct{})
 
 func main() {
-	nc, _ := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
 
 	data := make([]byte, messageSize)
 	_, _ = rand.Read(data)

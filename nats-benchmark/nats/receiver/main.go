@@ -29,7 +29,10 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt)
 
-	nc, _ := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
 
 	_, _ = nc.Subscribe("BENCH", func(m *nats.Msg) {
 		if string(m.Data) == "END" {
