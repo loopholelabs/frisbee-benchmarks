@@ -74,7 +74,7 @@ func main() {
 
 	if len(os.Args) > 3 {
 		receiveTopic = []byte(os.Args[3])
-		receiveTopicHash = crc32.ChecksumIEEE(topic)
+		receiveTopicHash = crc32.ChecksumIEEE(receiveTopic)
 	}
 
 	i := 0

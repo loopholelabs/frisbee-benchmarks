@@ -81,7 +81,7 @@ func main() {
 
 	if len(os.Args) > 6 {
 		receiveTopic = []byte(os.Args[6])
-		receiveTopicHash = crc32.ChecksumIEEE(topic)
+		receiveTopicHash = crc32.ChecksumIEEE(receiveTopic)
 	}
 
 	data := make([]byte, messageSize)
