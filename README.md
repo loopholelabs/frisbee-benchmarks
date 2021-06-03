@@ -10,7 +10,7 @@ replicated those same examples using NATS (with the official NATS broker being u
 ### NATS Side
 
 To start the NATS benchmark, you must have a NATS server accessible on the default NATS url (often `localhost:4222`). Then simply start the receivers and senders
-with `go run receiver/main.go` and `go run sender/main.go`.
+with `go run receiver/main.go localhost:4222` and `go run sender/main.go localhost:4222 <bytes per message> <number of messages> <repetitions>`.
 
 ### Frisbee Side
 
@@ -19,9 +19,9 @@ connect to a Frisbee server). You can start them like so:
 
 
 ```shell
-go run broker/main.go
-go run reciever/main.go
-go run sender/main.go
+go run broker/main.go # Will run on 0.0.0.0:8192 by default
+go run reciever/main.go localhost:8192
+go run sender/main.go localhost:8192 <bytes per message> <number of messages> <repetitions>
 ```
 
 ## Throughput Client to Server Benchmark
