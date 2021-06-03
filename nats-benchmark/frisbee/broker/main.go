@@ -21,7 +21,6 @@ package main
 
 import (
 	"github.com/loophole-labs/frisbee"
-	"github.com/rs/zerolog/log"
 	"hash/crc32"
 	"os"
 	"os/signal"
@@ -33,7 +32,6 @@ const SUB = uint32(2)
 var subscribers = make(map[uint32][]*frisbee.Conn)
 
 func handleSub(c *frisbee.Conn, incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	c.Logger().Printf("Received message of type SUB: %+v", incomingMessage)
 	if incomingMessage.ContentLength > 0 {
 		checksum := crc32.ChecksumIEEE(incomingContent)
 		subscribers[checksum] = append(subscribers[checksum], c)
@@ -42,16 +40,9 @@ func handleSub(c *frisbee.Conn, incomingMessage frisbee.Message, incomingContent
 }
 
 func handlePub(_ *frisbee.Conn, incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	log.Printf("Received message of type PUB: %+v", incomingMessage)
 	if connections := subscribers[incomingMessage.To]; connections != nil {
 		for _, c := range connections {
-			_ = c.Write(&frisbee.Message{
-				To:            incomingMessage.To,
-				From:          incomingMessage.From,
-				Id:            0,
-				Operation:     PUB,
-				ContentLength: incomingMessage.ContentLength,
-			}, &incomingContent)
+			_ = c.Write(&incomingMessage, &incomingContent)
 		}
 	}
 
