@@ -67,6 +67,16 @@ func main() {
 		panic(err)
 	}
 
+	if os.Args[2] != "" {
+		topic = []byte(os.Args[2])
+		topicHash = crc32.ChecksumIEEE(topic)
+	}
+
+	if os.Args[3] != "" {
+		receiveTopic = []byte(os.Args[3])
+		receiveTopicHash = crc32.ChecksumIEEE(topic)
+	}
+
 	i := 0
 
 	// First subscribe to the topic

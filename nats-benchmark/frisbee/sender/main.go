@@ -74,6 +74,16 @@ func main() {
 		panic(err)
 	}
 
+	if os.Args[5] != "" {
+		topic = []byte(os.Args[5])
+		topicHash = crc32.ChecksumIEEE(topic)
+	}
+
+	if os.Args[6] != "" {
+		receiveTopic = []byte(os.Args[6])
+		receiveTopicHash = crc32.ChecksumIEEE(topic)
+	}
+
 	data := make([]byte, messageSize)
 	_, _ = rand.Read(data)
 
