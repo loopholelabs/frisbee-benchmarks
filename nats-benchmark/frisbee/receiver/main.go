@@ -67,12 +67,12 @@ func main() {
 		panic(err)
 	}
 
-	if os.Args[2] != "" {
+	if len(os.Args) > 2 {
 		topic = []byte(os.Args[2])
 		topicHash = crc32.ChecksumIEEE(topic)
 	}
 
-	if os.Args[3] != "" {
+	if len(os.Args) > 3 {
 		receiveTopic = []byte(os.Args[3])
 		receiveTopicHash = crc32.ChecksumIEEE(topic)
 	}
