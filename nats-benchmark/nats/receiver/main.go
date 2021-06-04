@@ -32,9 +32,19 @@ func main() {
 		panic(err)
 	}
 
-	_, _ = nc.Subscribe("BENCH", func(m *nats.Msg) {
+	topic := "BENCH"
+	if len(os.Args) > 2 {
+		topic = os.Args[2]
+	}
+
+	receiveTopic := "DONE"
+	if len(os.Args) > 2 {
+		receiveTopic = os.Args[2]
+	}
+
+	_, _ = nc.Subscribe(topic, func(m *nats.Msg) {
 		if string(m.Data) == "END" {
-			_ = nc.Publish("DONE", []byte("END"))
+			_ = nc.Publish(receiveTopic, []byte("END"))
 		}
 	})
 

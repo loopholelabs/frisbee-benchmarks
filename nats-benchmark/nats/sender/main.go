@@ -49,10 +49,20 @@ func main() {
 		panic(err)
 	}
 
+	topic := "BENCH"
+	if len(os.Args) > 5 {
+		topic = os.Args[5]
+	}
+
+	receiveTopic := "DONE"
+	if len(os.Args) > 6 {
+		receiveTopic = os.Args[6]
+	}
+
 	data := make([]byte, messageSize)
 	_, _ = rand.Read(data)
 
-	_, _ = nc.Subscribe("DONE", func(m *nats.Msg) {
+	_, _ = nc.Subscribe(receiveTopic, func(m *nats.Msg) {
 		complete <- struct{}{}
 	})
 
@@ -60,12 +70,12 @@ func main() {
 	bench := hrtime.NewBenchmark(runs)
 	for bench.Next() {
 		for q := 0; q < testSize; q++ {
-			err := nc.Publish("BENCH", data)
+			err := nc.Publish(topic, data)
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := nc.Publish("BENCH", []byte("END"))
+		err := nc.Publish(topic, []byte("END"))
 		if err != nil {
 			panic(err)
 		}
