@@ -3,7 +3,7 @@ module github.com/loopholelabs/frisbee-benchmarks
 go 1.17
 
 require (
-	github.com/loopholelabs/frisbee rpc-packetbuffer
+	github.com/loopholelabs/frisbee v0.1.6-0.20220210175922-01af16452566
 	github.com/loov/hrtime v1.0.3
 	github.com/nats-io/nats.go v1.11.0
 	github.com/rs/zerolog v1.22.0
