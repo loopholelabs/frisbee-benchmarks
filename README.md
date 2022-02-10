@@ -23,25 +23,3 @@ go run broker/main.go # Will run on 0.0.0.0:8192 by default
 go run reciever/main.go localhost:8192
 go run sender/main.go localhost:8192 <bytes per message> <number of messages> <repetitions>
 ```
-
-## Throughput Client to Server Benchmark
-
-This benchmark is designed to test the Frisbee throughput when pushing data from the Frisbee Client to the Frisbee Server.
-
-To start this benchmark, you mush start the server and then the client (in that order).
-
-```shell
-go run server/main.go
-go run client/main.go
-```
-
-## Throughput Server to Client Benchmark
-
-This benchmark is designed to test the Frisbee throughput when pushing data from the Frisbee Server to the Frisbee Client.
-
-To start this benchmark, you mush start the server and then the client (in that order).
-
-```shell
-go run server/main.go
-go run client/main.go
-```
