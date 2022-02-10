@@ -3,7 +3,7 @@ module github.com/loopholelabs/frisbee-benchmarks
 go 1.17
 
 require (
-	github.com/loopholelabs/frisbee v0.1.6-0.20220210011649-e1f77a9e375d
+	github.com/loopholelabs/frisbee v0.1.6-0.20220210014350-561dabd7bc63
 	github.com/loov/hrtime v1.0.3
 	github.com/nats-io/nats.go v1.11.0
 	github.com/rs/zerolog v1.22.0
