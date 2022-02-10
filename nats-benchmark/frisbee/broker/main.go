@@ -17,31 +17,36 @@
 package main
 
 import (
-	"github.com/loophole-labs/frisbee"
+	"context"
+	"github.com/loopholelabs/frisbee"
+	"github.com/loopholelabs/frisbee/pkg/packet"
 	"github.com/rs/zerolog"
-	"hash/crc32"
 	"io/ioutil"
 	"os"
 	"os/signal"
 )
 
-const PUB = uint32(1)
-const SUB = uint32(2)
+const PUB = uint16(10)
+const SUB = uint16(11)
+const ConnKey = "conn"
 
-var subscribers = make(map[uint32][]*frisbee.Conn)
+var subscribers = make(map[uint16][]frisbee.Conn)
 
-func handleSub(c *frisbee.Conn, incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	if incomingMessage.ContentLength > 0 {
-		checksum := crc32.ChecksumIEEE(incomingContent)
-		subscribers[checksum] = append(subscribers[checksum], c)
-	}
+func handleSub(ctx context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	subscribers[incoming.Metadata.Id] = append(subscribers[incoming.Metadata.Id], ctx.Value(ConnKey).(*frisbee.Async))
 	return
 }
 
-func handlePub(_ *frisbee.Conn, incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	if connections := subscribers[incomingMessage.To]; connections != nil {
+func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	if connections := subscribers[incoming.Metadata.Id]; connections != nil {
 		for _, c := range connections {
-			_ = c.Write(&incomingMessage, &incomingContent)
+			p := packet.Get()
+			p.Metadata.Operation = incoming.Metadata.Operation
+			p.Metadata.ContentLength = incoming.Metadata.ContentLength
+			p.Metadata.Id = incoming.Metadata.Id
+			p.Write(incoming.Content)
+			_ = c.WritePacket(p)
+			packet.Put(p)
 		}
 	}
 
@@ -49,7 +54,7 @@ func handlePub(_ *frisbee.Conn, incomingMessage frisbee.Message, incomingContent
 }
 
 func main() {
-	router := make(frisbee.ServerRouter)
+	router := make(frisbee.HandlerTable)
 	router[SUB] = handleSub
 	router[PUB] = handlePub
 	exit := make(chan os.Signal, 1)
@@ -57,11 +62,20 @@ func main() {
 
 	emptyLogger := zerolog.New(ioutil.Discard)
 
-	s := frisbee.NewServer(":8192", router, frisbee.WithLogger(&emptyLogger))
-	_ = s.Start()
+	s, err := frisbee.NewServer(":8192", router, frisbee.WithLogger(&emptyLogger))
+	if err != nil {
+		panic(err)
+	}
+	s.ConnContext = func(ctx context.Context, conn *frisbee.Async) context.Context {
+		return context.WithValue(ctx, ConnKey, conn)
+	}
+	err = s.Start()
+	if err != nil {
+		panic(err)
+	}
 
 	<-exit
-	err := s.Shutdown()
+	err = s.Shutdown()
 	if err != nil {
 		panic(err)
 	}

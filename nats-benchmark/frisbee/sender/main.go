@@ -17,44 +17,44 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
-	"github.com/loophole-labs/frisbee"
+	"github.com/loopholelabs/frisbee"
+	"github.com/loopholelabs/frisbee/pkg/packet"
 	"github.com/loov/hrtime"
 	"github.com/rs/zerolog"
-	"hash/crc32"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 )
 
-const PUB = uint32(1)
-const SUB = uint32(2)
+const PUB = uint16(10)
+const SUB = uint16(11)
 
 var complete = make(chan struct{})
 
-var topic = []byte("SENDING")
-var topicHash = crc32.ChecksumIEEE(topic)
+var sendTopic = uint16(0)
+var receiveTopic = uint16(1)
 
-var receiveTopic = []byte("RECEIVING")
-var receiveTopicHash = crc32.ChecksumIEEE(receiveTopic)
-
-func handlePub(incomingMessage frisbee.Message, _ []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	if incomingMessage.To == receiveTopicHash {
+func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	if incoming.Metadata.Id == receiveTopic {
 		complete <- struct{}{}
 	}
 	return
 }
 
 func main() {
-	router := make(frisbee.ClientRouter)
-
+	router := make(frisbee.HandlerTable)
 	router[PUB] = handlePub
 
 	emptyLogger := zerolog.New(ioutil.Discard)
+	c, err := frisbee.NewClient(os.Args[1], router, context.Background(), frisbee.WithLogger(&emptyLogger))
+	if err != nil {
+		panic(err)
+	}
 
-	c := frisbee.NewClient(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
-	err := c.Connect()
+	err = c.Connect()
 	if err != nil {
 		panic(err)
 	}
@@ -75,13 +75,19 @@ func main() {
 	}
 
 	if len(os.Args) > 5 {
-		topic = []byte(os.Args[5])
-		topicHash = crc32.ChecksumIEEE(topic)
+		topic, err := strconv.Atoi(os.Args[5])
+		if err != nil {
+			panic(err)
+		}
+		sendTopic = uint16(topic)
 	}
 
 	if len(os.Args) > 6 {
-		receiveTopic = []byte(os.Args[6])
-		receiveTopicHash = crc32.ChecksumIEEE(receiveTopic)
+		topic, err := strconv.Atoi(os.Args[6])
+		if err != nil {
+			panic(err)
+		}
+		receiveTopic = uint16(topic)
 	}
 
 	data := make([]byte, messageSize)
@@ -89,13 +95,10 @@ func main() {
 
 	END := []byte("END")
 
-	err = c.Write(&frisbee.Message{
-		From:          0,
-		To:            0,
-		Id:            0,
-		Operation:     SUB,
-		ContentLength: uint64(len(receiveTopic)),
-	}, &receiveTopic)
+	p := packet.Get()
+	p.Metadata.Operation = SUB
+	p.Metadata.Id = receiveTopic
+	err = c.WritePacket(p)
 	if err != nil {
 		panic(err)
 	}
@@ -103,25 +106,23 @@ func main() {
 	i := 0
 	bench := hrtime.NewBenchmark(runs)
 	for bench.Next() {
+		p.Reset()
+		p.Metadata.Id = sendTopic
+		p.Metadata.Operation = PUB
+		p.Metadata.ContentLength = uint32(len(data))
+		p.Write(data)
 		for q := 0; q < testSize; q++ {
-			err := c.Write(&frisbee.Message{
-				From:          topicHash,
-				To:            topicHash,
-				Id:            uint32(i),
-				Operation:     PUB,
-				ContentLength: uint64(len(data)),
-			}, &data)
+			err = c.WritePacket(p)
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := c.Write(&frisbee.Message{
-			From:          topicHash,
-			To:            topicHash,
-			Id:            uint32(i),
-			Operation:     PUB,
-			ContentLength: uint64(len(END)),
-		}, &END)
+		p.Reset()
+		p.Metadata.Id = sendTopic
+		p.Metadata.Operation = PUB
+		p.Metadata.ContentLength = uint32(len(END))
+		p.Write(END)
+		err = c.WritePacket(p)
 		if err != nil {
 			panic(err)
 		}
@@ -129,6 +130,8 @@ func main() {
 		<-complete
 	}
 	log.Println(bench.Histogram(10))
+
+	packet.Put(p)
 
 	err = c.Close()
 	if err != nil {

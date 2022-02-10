@@ -17,76 +17,75 @@
 package main
 
 import (
-	"github.com/loophole-labs/frisbee"
+	"context"
+	"github.com/loopholelabs/frisbee"
+	"github.com/loopholelabs/frisbee/pkg/packet"
 	"github.com/rs/zerolog"
-	"hash/crc32"
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"strconv"
 )
 
-const PUB = uint32(1)
-const SUB = uint32(2)
+const PUB = uint16(10)
+const SUB = uint16(11)
 
-var topic = []byte("SENDING")
-var topicHash = crc32.ChecksumIEEE(topic)
-
-var receiveTopic = []byte("RECEIVING")
-var receiveTopicHash = crc32.ChecksumIEEE(receiveTopic)
+var receiveTopic = uint16(0)
+var sendTopic = uint16(1)
 
 const END = "END"
 
 // Handle the PUB message type
-func handlePub(incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	if incomingMessage.To == topicHash {
-		if string(incomingContent) == END {
-			outgoingMessage = &frisbee.Message{
-				To:            receiveTopicHash,
-				From:          receiveTopicHash,
-				Id:            0,
-				Operation:     PUB,
-				ContentLength: 0,
-			}
+func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	if incoming.Metadata.Id == receiveTopic {
+		if string(incoming.Content) == END {
+			incoming.Reset()
+			incoming.Metadata.Id = sendTopic
+			incoming.Metadata.Operation = PUB
+			outgoing = incoming
 		}
 	}
 	return
 }
 
 func main() {
-
-	router := make(frisbee.ClientRouter)
+	router := make(frisbee.HandlerTable)
 	router[PUB] = handlePub
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt)
 
 	emptyLogger := zerolog.New(ioutil.Discard)
-
-	c := frisbee.NewClient(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
-	err := c.Connect()
+	c, err := frisbee.NewClient(os.Args[1], router, context.Background(), frisbee.WithLogger(&emptyLogger))
 	if err != nil {
 		panic(err)
 	}
 
-	if len(os.Args) > 2 {
-		topic = []byte(os.Args[2])
-		topicHash = crc32.ChecksumIEEE(topic)
+	err = c.Connect()
+	if err != nil {
+		panic(err)
 	}
 
-	if len(os.Args) > 3 {
-		receiveTopic = []byte(os.Args[3])
-		receiveTopicHash = crc32.ChecksumIEEE(receiveTopic)
+	if len(os.Args) > 5 {
+		topic, err := strconv.Atoi(os.Args[5])
+		if err != nil {
+			panic(err)
+		}
+		sendTopic = uint16(topic)
 	}
 
-	i := 0
+	if len(os.Args) > 6 {
+		topic, err := strconv.Atoi(os.Args[6])
+		if err != nil {
+			panic(err)
+		}
+		receiveTopic = uint16(topic)
+	}
 
-	// First subscribe to the topic
-	err = c.Write(&frisbee.Message{
-		From:          0,
-		To:            0,
-		Id:            uint32(i),
-		Operation:     SUB,
-		ContentLength: uint64(len(topic)),
-	}, &topic)
+	p := packet.Get()
+	p.Metadata.Id = receiveTopic
+	p.Metadata.Operation = SUB
+
+	err = c.WritePacket(p)
 	if err != nil {
 		panic(err)
 	}
