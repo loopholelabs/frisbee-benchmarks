@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Running Using $1 as Broker"
+
 go run main.go $1 32 100000 100
 go run main.go $1 128 100000 100
 go run main.go $1 512 100000 100
