@@ -103,35 +103,36 @@ func main() {
 		panic(err)
 	}
 
-	i := 0
+	p.Reset()
+	p.Metadata.Id = sendTopic
+	p.Metadata.Operation = PUB
+	p.Metadata.ContentLength = uint32(len(data))
+	p.Write(data)
+
+	endPacket := packet.Get()
+	endPacket.Metadata.Id = sendTopic
+	endPacket.Metadata.Operation = PUB
+	endPacket.Metadata.ContentLength = uint32(len(END))
+	endPacket.Write(END)
+
 	bench := hrtime.NewBenchmark(runs)
 	for bench.Next() {
-		p.Reset()
-		p.Metadata.Id = sendTopic
-		p.Metadata.Operation = PUB
-		p.Metadata.ContentLength = uint32(len(data))
-		p.Write(data)
 		for q := 0; q < testSize; q++ {
 			err = c.WritePacket(p)
 			if err != nil {
 				panic(err)
 			}
 		}
-		p.Reset()
-		p.Metadata.Id = sendTopic
-		p.Metadata.Operation = PUB
-		p.Metadata.ContentLength = uint32(len(END))
-		p.Write(END)
-		err = c.WritePacket(p)
+		err = c.WritePacket(endPacket)
 		if err != nil {
 			panic(err)
 		}
-		i++
 		<-complete
 	}
 	log.Println(bench.Histogram(10))
 
 	packet.Put(p)
+	packet.Put(endPacket)
 
 	err = c.Close()
 	if err != nil {

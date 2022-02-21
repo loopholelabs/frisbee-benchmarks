@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
+	"log"
 	"os"
 	"os/signal"
 )
@@ -53,6 +54,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	log.Printf("Ready to Receive\n")
 
 	<-exit
 	nc.Close()

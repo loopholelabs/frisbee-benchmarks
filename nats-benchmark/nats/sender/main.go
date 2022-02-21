@@ -69,7 +69,8 @@ func main() {
 		panic(err)
 	}
 
-	i := 0
+	log.Printf("Running benchmark with Message Size %d, Messages per Run %d, and Num Runs %d\n", messageSize, testSize, runs)
+
 	bench := hrtime.NewBenchmark(runs)
 	for bench.Next() {
 		for q := 0; q < testSize; q++ {
@@ -83,7 +84,6 @@ func main() {
 			panic(err)
 		}
 		<-complete
-		i++
 	}
 	log.Println(bench.Histogram(10))
 	nc.Close()

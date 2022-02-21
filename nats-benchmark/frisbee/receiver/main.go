@@ -22,6 +22,7 @@ import (
 	"github.com/loopholelabs/frisbee/pkg/packet"
 	"github.com/rs/zerolog"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -89,6 +90,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	log.Printf("Ready to Receive\n")
 
 	// Now the handle pub function will be called
 	// automatically whenever a message that matches the topic arrives

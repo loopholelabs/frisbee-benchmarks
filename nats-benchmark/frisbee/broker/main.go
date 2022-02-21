@@ -30,7 +30,7 @@ const PUB = uint16(10)
 const SUB = uint16(11)
 const ConnKey = "conn"
 
-var subscribers = make(map[uint16][]frisbee.Conn)
+var subscribers = make(map[uint16][]*frisbee.Async)
 
 func handleSub(ctx context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
 	subscribers[incoming.Metadata.Id] = append(subscribers[incoming.Metadata.Id], ctx.Value(ConnKey).(*frisbee.Async))
@@ -39,15 +39,15 @@ func handleSub(ctx context.Context, incoming *packet.Packet) (outgoing *packet.P
 
 func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
 	if connections := subscribers[incoming.Metadata.Id]; connections != nil {
+		p := packet.Get()
+		p.Metadata.Operation = incoming.Metadata.Operation
+		p.Metadata.ContentLength = incoming.Metadata.ContentLength
+		p.Metadata.Id = incoming.Metadata.Id
+		p.Write(incoming.Content)
 		for _, c := range connections {
-			p := packet.Get()
-			p.Metadata.Operation = incoming.Metadata.Operation
-			p.Metadata.ContentLength = incoming.Metadata.ContentLength
-			p.Metadata.Id = incoming.Metadata.Id
-			p.Write(incoming.Content)
 			_ = c.WritePacket(p)
-			packet.Put(p)
 		}
+		packet.Put(p)
 	}
 
 	return
