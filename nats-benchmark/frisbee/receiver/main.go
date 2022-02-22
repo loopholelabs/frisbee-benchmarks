@@ -66,16 +66,16 @@ func main() {
 		panic(err)
 	}
 
-	if len(os.Args) > 5 {
-		topic, err := strconv.Atoi(os.Args[5])
+	if len(os.Args) > 2 {
+		topic, err := strconv.Atoi(os.Args[2])
 		if err != nil {
 			panic(err)
 		}
 		sendTopic = uint16(topic)
 	}
 
-	if len(os.Args) > 6 {
-		topic, err := strconv.Atoi(os.Args[6])
+	if len(os.Args) > 3 {
+		topic, err := strconv.Atoi(os.Args[3])
 		if err != nil {
 			panic(err)
 		}

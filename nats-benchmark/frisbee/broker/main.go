@@ -78,7 +78,7 @@ func main() {
 
 	emptyLogger := zerolog.New(ioutil.Discard)
 
-	s, err := frisbee.NewServer(":8192", router, frisbee.WithLogger(&emptyLogger))
+	s, err := frisbee.NewServer(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
 	if err != nil {
 		panic(err)
 	}
