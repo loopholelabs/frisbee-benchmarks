@@ -9,7 +9,7 @@ sleep 1
 
 echo "Running Receiver Connecting to $1"
 
-go run ../receiver/main.go "$1"
+go run ../receiver/main.go "$1" &
 RECEIVER_PID=$!
 
 sleep 1

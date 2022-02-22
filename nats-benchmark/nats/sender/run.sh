@@ -1,16 +1,20 @@
 #!/bin/bash
 
-echo "Running Using $1 as Broker"
+echo "Running Broker Binding to $1"
 
 nats-server &
 BROKER_PID=$!
 
 sleep 1
 
-go run ../receiver/main.go "$1"
+echo "Running Receiver Connecting to $1"
+
+go run ../receiver/main.go "$1" &
 RECEIVER_PID=$!
 
 sleep 1
+
+echo "Running Sender Connecting to $1"
 
 go run main.go "$1" 32 100000 100
 go run main.go "$1" 128 100000 100
