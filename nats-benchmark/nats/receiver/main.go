@@ -55,7 +55,7 @@ func main() {
 		panic(err)
 	}
 
-	log.Printf("Ready to Receive\n")
+	log.Printf("[RECEIVER] Ready to Receive\n")
 
 	<-exit
 	nc.Close()

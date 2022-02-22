@@ -91,7 +91,7 @@ func main() {
 		panic(err)
 	}
 
-	log.Printf("Ready to Receive\n")
+	log.Printf("[RECEIVER] Ready to Receive\n")
 
 	// Now the handle pub function will be called
 	// automatically whenever a message that matches the topic arrives

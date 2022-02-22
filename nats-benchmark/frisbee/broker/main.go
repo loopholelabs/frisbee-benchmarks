@@ -38,7 +38,7 @@ var subscriptions = make(map[*frisbee.Async]map[uint16]bool)
 
 func handleSub(ctx context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
 	conn := ctx.Value(ConnKey).(*frisbee.Async)
-	log.Printf("Adding subscriber for ID %d, with Remote IP %s\n", incoming.Metadata.Id, conn.RemoteAddr())
+	log.Printf("[BROKER] Adding subscriber for ID %d, with Remote IP %s\n", incoming.Metadata.Id, conn.RemoteAddr())
 	mu.Lock()
 	subscribers[incoming.Metadata.Id] = append(subscribers[incoming.Metadata.Id], conn)
 	if m, ok := subscriptions[conn]; !ok {
@@ -86,7 +86,7 @@ func main() {
 		return context.WithValue(ctx, ConnKey, conn)
 	}
 	s.OnClosed = func(conn *frisbee.Async, err error) {
-		log.Printf("Removing subscriber with Remote IP %s\n", conn.RemoteAddr())
+		log.Printf("[BROKER] Removing subscriber with Remote IP %s\n", conn.RemoteAddr())
 		mu.Lock()
 		if m, ok := subscriptions[conn]; ok {
 			for k, v := range m {
