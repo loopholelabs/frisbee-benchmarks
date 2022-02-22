@@ -20,8 +20,8 @@ github.com/klauspost/compress v1.11.12/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdY
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/loopholelabs/frisbee v0.1.6-0.20220221231439-f9c5f7b67305 h1:cPI3AVojpantZPngRKv2CNgfl20gG8f0cMzvWK1JVHw=
-github.com/loopholelabs/frisbee v0.1.6-0.20220221231439-f9c5f7b67305/go.mod h1:1cCu4N9b+ESyAt9ZXVlBUxeEEf94SW/6y/JBt1v5s4k=
+github.com/loopholelabs/frisbee v0.1.6-0.20220222000117-c80106e9b0ee h1:0m6H4/lLkl3e0iLcYhyX/rp9wfvMMwF+bUDykWL2/90=
+github.com/loopholelabs/frisbee v0.1.6-0.20220222000117-c80106e9b0ee/go.mod h1:1cCu4N9b+ESyAt9ZXVlBUxeEEf94SW/6y/JBt1v5s4k=
 github.com/loopholelabs/testing v0.2.3 h1:4nVuK5ctaE6ua5Z0dYk2l7xTFmcpCYLUeGjRBp8keOA=
 github.com/loopholelabs/testing v0.2.3/go.mod h1:gqtGY91soYD1fQoKQt/6kP14OYpS7gcbcIgq5mc9m8Q=
 github.com/loov/hrtime v1.0.3 h1:LiWKU3B9skJwRPUf0Urs9+0+OE3TxdMuiRPOTwR0gcU=

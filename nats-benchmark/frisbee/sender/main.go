@@ -115,6 +115,8 @@ func main() {
 	endPacket.Metadata.ContentLength = uint32(len(END))
 	endPacket.Write(END)
 
+	log.Printf("Running benchmark with Message Size %d, Messages per Run %d, and Num Runs %d\n", messageSize, testSize, runs)
+
 	bench := hrtime.NewBenchmark(runs)
 	for bench.Next() {
 		for q := 0; q < testSize; q++ {
