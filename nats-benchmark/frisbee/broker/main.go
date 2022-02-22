@@ -22,22 +22,37 @@ import (
 	"github.com/loopholelabs/frisbee/pkg/packet"
 	"github.com/rs/zerolog"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
+	"sync"
 )
 
 const PUB = uint16(10)
 const SUB = uint16(11)
 const ConnKey = "conn"
 
+var mu sync.RWMutex
 var subscribers = make(map[uint16][]*frisbee.Async)
+var subscriptions = make(map[*frisbee.Async]map[uint16]bool)
 
 func handleSub(ctx context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
-	subscribers[incoming.Metadata.Id] = append(subscribers[incoming.Metadata.Id], ctx.Value(ConnKey).(*frisbee.Async))
+	conn := ctx.Value(ConnKey).(*frisbee.Async)
+	log.Printf("Adding subscriber for ID %d, with Remote IP %s\n", incoming.Metadata.Id, conn.RemoteAddr())
+	mu.Lock()
+	subscribers[incoming.Metadata.Id] = append(subscribers[incoming.Metadata.Id], conn)
+	if m, ok := subscriptions[conn]; !ok {
+		m = make(map[uint16]bool)
+		subscriptions[conn] = m
+	} else {
+		m[incoming.Metadata.Id] = true
+	}
+	mu.Unlock()
 	return
 }
 
 func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	mu.RLock()
 	if connections := subscribers[incoming.Metadata.Id]; connections != nil {
 		p := packet.Get()
 		p.Metadata.Operation = incoming.Metadata.Operation
@@ -49,6 +64,7 @@ func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Pac
 		}
 		packet.Put(p)
 	}
+	mu.RUnlock()
 
 	return
 }
@@ -68,6 +84,25 @@ func main() {
 	}
 	s.ConnContext = func(ctx context.Context, conn *frisbee.Async) context.Context {
 		return context.WithValue(ctx, ConnKey, conn)
+	}
+	s.OnClosed = func(conn *frisbee.Async, err error) {
+		log.Printf("Removing subscriber with Remote IP %s\n", conn.RemoteAddr())
+		mu.Lock()
+		if m, ok := subscriptions[conn]; ok {
+			for k, v := range m {
+				if v {
+					for i, c := range subscribers[k] {
+						if c == conn {
+							subscribers[k][i] = subscribers[k][len(subscribers[k])-1]
+							subscribers[k] = subscribers[k][:len(subscribers[k])-1]
+						}
+					}
+				}
+			}
+		}
+		delete(subscriptions, conn)
+		mu.Unlock()
+
 	}
 	err = s.Start()
 	if err != nil {
