@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
+	"log"
 	"os"
 	"os/signal"
 )
@@ -32,21 +33,29 @@ func main() {
 		panic(err)
 	}
 
-	topic := "BENCH"
+	sendTopic := "1"
 	if len(os.Args) > 2 {
-		topic = os.Args[2]
+		sendTopic = os.Args[2]
 	}
 
-	receiveTopic := "DONE"
+	receiveTopic := "0"
 	if len(os.Args) > 3 {
 		receiveTopic = os.Args[3]
 	}
 
-	_, _ = nc.Subscribe(topic, func(m *nats.Msg) {
+	_, err = nc.Subscribe(receiveTopic, func(m *nats.Msg) {
 		if string(m.Data) == "END" {
-			_ = nc.Publish(receiveTopic, []byte("END"))
+			err := nc.Publish(sendTopic, []byte("END"))
+			if err != nil {
+				panic(err)
+			}
 		}
 	})
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("[RECEIVER] Ready to Receive\n")
 
 	<-exit
 	nc.Close()

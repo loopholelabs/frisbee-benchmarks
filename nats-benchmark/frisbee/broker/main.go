@@ -17,39 +17,60 @@
 package main
 
 import (
-	"github.com/loophole-labs/frisbee"
+	"context"
+	"github.com/loopholelabs/frisbee"
+	"github.com/loopholelabs/frisbee/pkg/packet"
 	"github.com/rs/zerolog"
-	"hash/crc32"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
+	"sync"
 )
 
-const PUB = uint32(1)
-const SUB = uint32(2)
+const PUB = uint16(10)
+const SUB = uint16(11)
+const ConnKey = "conn"
 
-var subscribers = make(map[uint32][]*frisbee.Conn)
+var mu sync.RWMutex
+var subscribers = make(map[uint16][]*frisbee.Async)
+var subscriptions = make(map[*frisbee.Async]map[uint16]bool)
 
-func handleSub(c *frisbee.Conn, incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	if incomingMessage.ContentLength > 0 {
-		checksum := crc32.ChecksumIEEE(incomingContent)
-		subscribers[checksum] = append(subscribers[checksum], c)
+func handleSub(ctx context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	conn := ctx.Value(ConnKey).(*frisbee.Async)
+	log.Printf("[BROKER] Adding subscriber for ID %d, with Remote IP %s\n", incoming.Metadata.Id, conn.RemoteAddr())
+	mu.Lock()
+	subscribers[incoming.Metadata.Id] = append(subscribers[incoming.Metadata.Id], conn)
+	if m, ok := subscriptions[conn]; !ok {
+		m = make(map[uint16]bool)
+		subscriptions[conn] = m
+	} else {
+		m[incoming.Metadata.Id] = true
 	}
+	mu.Unlock()
 	return
 }
 
-func handlePub(_ *frisbee.Conn, incomingMessage frisbee.Message, incomingContent []byte) (outgoingMessage *frisbee.Message, outgoingContent []byte, action frisbee.Action) {
-	if connections := subscribers[incomingMessage.To]; connections != nil {
+func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
+	mu.RLock()
+	if connections := subscribers[incoming.Metadata.Id]; connections != nil {
+		p := packet.Get()
+		p.Metadata.Operation = incoming.Metadata.Operation
+		p.Metadata.ContentLength = incoming.Metadata.ContentLength
+		p.Metadata.Id = incoming.Metadata.Id
+		p.Write(incoming.Content)
 		for _, c := range connections {
-			_ = c.Write(&incomingMessage, &incomingContent)
+			_ = c.WritePacket(p)
 		}
+		packet.Put(p)
 	}
+	mu.RUnlock()
 
 	return
 }
 
 func main() {
-	router := make(frisbee.ServerRouter)
+	router := make(frisbee.HandlerTable)
 	router[SUB] = handleSub
 	router[PUB] = handlePub
 	exit := make(chan os.Signal, 1)
@@ -57,11 +78,39 @@ func main() {
 
 	emptyLogger := zerolog.New(ioutil.Discard)
 
-	s := frisbee.NewServer(":8192", router, frisbee.WithLogger(&emptyLogger))
-	_ = s.Start()
+	s, err := frisbee.NewServer(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
+	if err != nil {
+		panic(err)
+	}
+	s.ConnContext = func(ctx context.Context, conn *frisbee.Async) context.Context {
+		return context.WithValue(ctx, ConnKey, conn)
+	}
+	s.OnClosed = func(conn *frisbee.Async, err error) {
+		log.Printf("[BROKER] Removing subscriber with Remote IP %s\n", conn.RemoteAddr())
+		mu.Lock()
+		if m, ok := subscriptions[conn]; ok {
+			for k, v := range m {
+				if v {
+					for i, c := range subscribers[k] {
+						if c == conn {
+							subscribers[k][i] = subscribers[k][len(subscribers[k])-1]
+							subscribers[k] = subscribers[k][:len(subscribers[k])-1]
+						}
+					}
+				}
+			}
+		}
+		delete(subscriptions, conn)
+		mu.Unlock()
+
+	}
+	err = s.Start()
+	if err != nil {
+		panic(err)
+	}
 
 	<-exit
-	err := s.Shutdown()
+	err = s.Shutdown()
 	if err != nil {
 		panic(err)
 	}
