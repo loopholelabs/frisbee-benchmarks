@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"github.com/loov/hrtime"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
+	benchmark "go.buf.build/grpc/go/loopholelabs/frisbee-benchmark"
+	"google.golang.org/grpc"
 	"log"
 	"os"
 	"strconv"
@@ -32,51 +32,44 @@ func main() {
 		panic(err)
 	}
 
-	data := make([]byte, messageSize)
-	_, _ = rand.Read(data)
-
 	req := new(benchmark.Request)
-	req.Message = string(data)
+	req.Message = "Test String"
 
 	log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, and Num Clients %d\n", messageSize, testSize, runs, clients)
 
 	start := make(chan struct{}, clients)
 	done := make(chan struct{}, clients)
 
-	createClient := func(id int) {
-		var c *benchmark.Client
-		c, err = benchmark.NewClient(os.Args[1], nil, nil)
-		if err != nil {
-			panic(err)
-		}
-
-		err = c.Connect()
-		if err != nil {
-			panic(err)
-		}
-
+	createClient := func(id int, conn *grpc.ClientConn, c benchmark.BenchmarkServiceClient) {
 		var t time.Time
 		for i := 0; i < runs; i++ {
 			<-start
 			t = time.Now()
 			for q := 0; q < testSize; q++ {
-				err = c.BenchmarkIgnore(context.Background(), req)
+				_, err = c.Benchmark(context.Background(), req)
 				if err != nil {
 					panic(err)
 				}
 			}
 			done <- struct{}{}
-			log.Printf("Client %d Finish in %s\n", id, time.Since(t))
+			log.Printf("Client %d finished run %d in %s\n", id, i, time.Since(t))
 		}
 
-		err = c.Close()
+		err = conn.Close()
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	for i := 0; i < clients; i++ {
-		go createClient(i)
+		var conn *grpc.ClientConn
+		conn, err := grpc.Dial(os.Args[1], grpc.WithInsecure())
+		if err != nil {
+			log.Fatalf("fail to dial: %v", err)
+		}
+		client := benchmark.NewBenchmarkServiceClient(conn)
+
+		go createClient(i, conn, client)
 	}
 
 	bench := hrtime.NewBenchmark(runs)

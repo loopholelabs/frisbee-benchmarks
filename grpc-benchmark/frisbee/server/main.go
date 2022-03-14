@@ -9,7 +9,7 @@ import (
 
 type svc struct{}
 
-func (s svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.Response, error) {
+func (s *svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.Response, error) {
 	res := new(benchmark.Response)
 	res.Message = req.Message
 	return res, nil
@@ -33,4 +33,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	return
 }
