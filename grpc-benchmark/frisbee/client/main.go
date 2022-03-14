@@ -5,10 +5,19 @@ import (
 	"github.com/loov/hrtime"
 	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
 )
+
+func RandomString(len int) string {
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		bytes[i] = byte(65 + rand.Intn(25))
+	}
+	return string(bytes)
+}
 
 func main() {
 	messageSize, err := strconv.Atoi(os.Args[2])
@@ -32,7 +41,7 @@ func main() {
 	}
 
 	req := new(benchmark.Request)
-	req.Message = "Benchmark Message"
+	req.Message = RandomString(messageSize)
 
 	log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, and Num Clients %d\n", messageSize, testSize, runs, clients)
 
