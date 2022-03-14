@@ -9,6 +9,7 @@ require (
 	github.com/rs/zerolog v1.22.0
 	go.buf.build/grpc/go/loopholelabs/frisbee-benchmark v1.2.1
 	go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark v1.2.1
+	google.golang.org/grpc v1.32.0
 )
 
 require (
@@ -23,6 +24,5 @@ require (
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55 // indirect
-	google.golang.org/grpc v1.32.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )

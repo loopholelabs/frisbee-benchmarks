@@ -33,7 +33,7 @@ func main() {
 	}
 
 	req := new(benchmark.Request)
-	req.Message = "Test String"
+	req.Message = "Benchmark Message"
 
 	log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, and Num Clients %d\n", messageSize, testSize, runs, clients)
 
@@ -45,10 +45,14 @@ func main() {
 		for i := 0; i < runs; i++ {
 			<-start
 			t = time.Now()
+			var res *benchmark.Response
 			for q := 0; q < testSize; q++ {
-				_, err = c.Benchmark(context.Background(), req)
+				res, err = c.Benchmark(context.Background(), req)
 				if err != nil {
 					panic(err)
+				}
+				if res.Message != req.Message {
+					panic("invalid response")
 				}
 			}
 			done <- struct{}{}
