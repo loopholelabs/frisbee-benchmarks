@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"time"
 )
 
 func RandomString(len int) string {
@@ -39,6 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	shouldLog := len(os.Args) > 6
 
 	req := new(benchmark.Request)
 	req.Message = RandomString(messageSize)
@@ -49,8 +51,10 @@ func main() {
 	done := make(chan struct{}, clients)
 
 	createClient := func(id int, conn *grpc.ClientConn, c benchmark.BenchmarkServiceClient) {
+		var t time.Time
 		for i := 0; i < runs; i++ {
 			<-start
+			t = time.Now()
 			var res *benchmark.Response
 			for q := 0; q < testSize; q++ {
 				res, err = c.Benchmark(context.Background(), req)
@@ -59,6 +63,9 @@ func main() {
 				}
 				if res.Message != req.Message {
 					panic("invalid response")
+				}
+				if shouldLog {
+					log.Printf("Client with ID %d completed in %s\n", id, time.Since(t))
 				}
 			}
 			done <- struct{}{}
