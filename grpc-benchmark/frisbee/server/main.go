@@ -2,15 +2,25 @@ package main
 
 import (
 	"context"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
+	benchmark "github.com/loopholelabs/frisbee-benchmarks/grpc-benchmark/frisbee/proto"
+	"log"
 	"os"
 	"os/signal"
+	"runtime"
+	"time"
 )
 
 type svc struct{}
 
 func (s *svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.Response, error) {
 	res := new(benchmark.Response)
+	res.Message = req.Message
+	return res, nil
+}
+
+func (s *svc) BenchmarkSlow(_ context.Context, req *benchmark.Request) (*benchmark.Response, error) {
+	res := new(benchmark.Response)
+	time.Sleep(time.Second)
 	res.Message = req.Message
 	return res, nil
 }
@@ -28,10 +38,20 @@ func main() {
 		panic(err)
 	}
 
-	<-exit
-	err = server.Shutdown()
-	if err != nil {
-		panic(err)
+	for {
+		select {
+		case <-exit:
+			err = server.Shutdown()
+			if err != nil {
+				panic(err)
+			}
+			return
+		default:
+			log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
+			time.Sleep(time.Millisecond * 500)
+		}
+
 	}
+
 	return
 }

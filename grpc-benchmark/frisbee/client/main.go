@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	benchmark "github.com/loopholelabs/frisbee-benchmarks/grpc-benchmark/frisbee/proto"
 	"github.com/loov/hrtime"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
 	"math/rand"
 	"os"
@@ -49,7 +49,7 @@ func main() {
 	start := make(chan struct{}, clients)
 	done := make(chan struct{}, clients)
 
-	createClient := func(id int, c *benchmark.Client) {
+	runBenchmark := func(id int, c *benchmark.Client) {
 		var t time.Time
 		for i := 0; i < runs; i++ {
 			<-start
@@ -65,30 +65,25 @@ func main() {
 				}
 			}
 			if shouldLog {
-				log.Printf("Client with ID %d completed in %s\n", id, time.Since(t))
+				log.Printf("Client with ID %d completed run %d in %s\n", id, i, time.Since(t))
 			}
 			done <- struct{}{}
 		}
+	}
 
-		err = c.Close()
-		if err != nil {
-			panic(err)
-		}
+	var c *benchmark.Client
+	c, err = benchmark.NewClient(os.Args[1], nil, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	err = c.Connect()
+	if err != nil {
+		panic(err)
 	}
 
 	for i := 0; i < clients; i++ {
-		var c *benchmark.Client
-		c, err = benchmark.NewClient(os.Args[1], nil, nil)
-		if err != nil {
-			panic(err)
-		}
-
-		err = c.Connect()
-		if err != nil {
-			panic(err)
-		}
-
-		go createClient(i, c)
+		go runBenchmark(i, c)
 	}
 
 	bench := hrtime.NewBenchmark(runs)
@@ -99,6 +94,10 @@ func main() {
 		for i := 0; i < clients; i++ {
 			<-done
 		}
+	}
+	err = c.Close()
+	if err != nil {
+		panic(err)
 	}
 	log.Println(bench.Histogram(10))
 }

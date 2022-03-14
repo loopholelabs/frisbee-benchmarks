@@ -50,7 +50,7 @@ func main() {
 	start := make(chan struct{}, clients)
 	done := make(chan struct{}, clients)
 
-	createClient := func(id int, conn *grpc.ClientConn, c benchmark.BenchmarkServiceClient) {
+	runBenchmark := func(id int, c benchmark.BenchmarkServiceClient) {
 		var t time.Time
 		for i := 0; i < runs; i++ {
 			<-start
@@ -65,27 +65,21 @@ func main() {
 					panic("invalid response")
 				}
 				if shouldLog {
-					log.Printf("Client with ID %d completed in %s\n", id, time.Since(t))
+					log.Printf("Client with ID %d completed run %d in %s\n", id, i, time.Since(t))
 				}
 			}
 			done <- struct{}{}
 		}
-
-		err = conn.Close()
-		if err != nil {
-			panic(err)
-		}
 	}
 
+	var conn *grpc.ClientConn
+	conn, err = grpc.Dial(os.Args[1], grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
+	}
 	for i := 0; i < clients; i++ {
-		var conn *grpc.ClientConn
-		conn, err := grpc.Dial(os.Args[1], grpc.WithInsecure())
-		if err != nil {
-			log.Fatalf("fail to dial: %v", err)
-		}
 		client := benchmark.NewBenchmarkServiceClient(conn)
-
-		go createClient(i, conn, client)
+		go runBenchmark(i, client)
 	}
 
 	bench := hrtime.NewBenchmark(runs)
@@ -97,5 +91,11 @@ func main() {
 			<-done
 		}
 	}
+
+	err = conn.Close()
+	if err != nil {
+		panic(err)
+	}
+
 	log.Println(bench.Histogram(10))
 }

@@ -4,8 +4,11 @@ import (
 	"context"
 	benchmark "go.buf.build/grpc/go/loopholelabs/frisbee-benchmark"
 	"google.golang.org/grpc"
+	"log"
 	"net"
 	"os"
+	"runtime"
+	"time"
 )
 
 type svc struct {
@@ -28,8 +31,15 @@ func main() {
 
 	benchmark.RegisterBenchmarkServiceServer(grpcServer, new(svc))
 
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		panic(err)
+	go func() {
+		err = grpcServer.Serve(lis)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	for {
+		log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
+		time.Sleep(time.Millisecond * 500)
 	}
 }
