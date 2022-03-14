@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	benchmark "github.com/loopholelabs/frisbee-benchmarks/grpc-benchmark/frisbee/proto"
+	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
 	"os"
 	"os/signal"
@@ -14,13 +14,6 @@ type svc struct{}
 
 func (s *svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.Response, error) {
 	res := new(benchmark.Response)
-	res.Message = req.Message
-	return res, nil
-}
-
-func (s *svc) BenchmarkSlow(_ context.Context, req *benchmark.Request) (*benchmark.Response, error) {
-	res := new(benchmark.Response)
-	time.Sleep(time.Second)
 	res.Message = req.Message
 	return res, nil
 }

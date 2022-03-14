@@ -9,8 +9,43 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
+
+type client struct {
+	benchmark.BenchmarkServiceClient
+	*grpc.ClientConn
+}
+
+func (c *client) run(wg *sync.WaitGroup, id int, concurrency int, size int, req *benchmark.Request, shouldLog bool) {
+	var res *benchmark.Response
+	var err error
+	t := time.Now()
+	for q := 0; q < size; q++ {
+		res, err = c.Benchmark(context.Background(), req)
+		if err != nil {
+			panic(err)
+		}
+		if res.Message != req.Message {
+			panic("invalid response")
+		}
+	}
+	if shouldLog {
+		log.Printf("Client with ID %d and concurrency %d completed in %s\n", id, concurrency, time.Since(t))
+	}
+	wg.Done()
+}
+
+func (c *client) start(wg *sync.WaitGroup, id int, concurrent int, size int, req *benchmark.Request, shouldLog bool) {
+	var runWg sync.WaitGroup
+	runWg.Add(concurrent)
+	for i := 0; i < concurrent; i++ {
+		go c.run(&runWg, id, i, size, req, shouldLog)
+	}
+	runWg.Wait()
+	wg.Done()
+}
 
 func RandomString(len int) string {
 	bytes := make([]byte, len)
@@ -36,65 +71,49 @@ func main() {
 		panic(err)
 	}
 
-	clients, err := strconv.Atoi(os.Args[5])
+	numClients, err := strconv.Atoi(os.Args[5])
 	if err != nil {
 		panic(err)
 	}
-	shouldLog := len(os.Args) > 6
+
+	numConcurrent, err := strconv.Atoi(os.Args[6])
+	if err != nil {
+		panic(err)
+	}
+
+	shouldLog := len(os.Args) > 7
 
 	req := new(benchmark.Request)
 	req.Message = RandomString(messageSize)
 
-	log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, and Num Clients %d\n", messageSize, testSize, runs, clients)
+	log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, Num Clients %d, an Num Concurrent %d\n", messageSize, testSize, runs, numClients, numConcurrent)
 
-	start := make(chan struct{}, clients)
-	done := make(chan struct{}, clients)
+	clients := make([]*client, 0, numClients)
 
-	runBenchmark := func(id int, c benchmark.BenchmarkServiceClient) {
-		var t time.Time
-		for i := 0; i < runs; i++ {
-			<-start
-			t = time.Now()
-			var res *benchmark.Response
-			for q := 0; q < testSize; q++ {
-				res, err = c.Benchmark(context.Background(), req)
-				if err != nil {
-					panic(err)
-				}
-				if res.Message != req.Message {
-					panic("invalid response")
-				}
-				if shouldLog {
-					log.Printf("Client with ID %d completed run %d in %s\n", id, i, time.Since(t))
-				}
-			}
-			done <- struct{}{}
+	for i := 0; i < numClients; i++ {
+		var conn *grpc.ClientConn
+		conn, err = grpc.Dial(os.Args[1], grpc.WithInsecure())
+		if err != nil {
+			panic(err)
 		}
+		clients = append(clients, &client{ClientConn: conn, BenchmarkServiceClient: benchmark.NewBenchmarkServiceClient(conn)})
 	}
 
-	var conn *grpc.ClientConn
-	conn, err = grpc.Dial(os.Args[1], grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
-	}
-	for i := 0; i < clients; i++ {
-		client := benchmark.NewBenchmarkServiceClient(conn)
-		go runBenchmark(i, client)
-	}
-
+	var wg sync.WaitGroup
 	bench := hrtime.NewBenchmark(runs)
 	for bench.Next() {
-		for i := 0; i < clients; i++ {
-			start <- struct{}{}
+		wg.Add(numClients)
+		for id, c := range clients {
+			go c.start(&wg, id, numConcurrent, testSize, req, shouldLog)
 		}
-		for i := 0; i < clients; i++ {
-			<-done
-		}
+		wg.Wait()
 	}
 
-	err = conn.Close()
-	if err != nil {
-		panic(err)
+	for _, c := range clients {
+		err = c.Close()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	log.Println(bench.Histogram(10))
