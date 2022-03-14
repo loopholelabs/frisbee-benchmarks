@@ -58,7 +58,7 @@ func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Pac
 		p.Metadata.Operation = incoming.Metadata.Operation
 		p.Metadata.ContentLength = incoming.Metadata.ContentLength
 		p.Metadata.Id = incoming.Metadata.Id
-		p.Write(incoming.Content)
+		p.Content.Write(incoming.Content.B)
 		for _, c := range connections {
 			_ = c.WritePacket(p)
 		}

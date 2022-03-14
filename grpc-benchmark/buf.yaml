@@ -1,0 +1,8 @@
+version: v1
+name: buf.build/loopholelabs/frisbee-benchmark
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT

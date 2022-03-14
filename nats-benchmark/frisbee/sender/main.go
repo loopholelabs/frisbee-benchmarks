@@ -107,13 +107,13 @@ func main() {
 	p.Metadata.Id = sendTopic
 	p.Metadata.Operation = PUB
 	p.Metadata.ContentLength = uint32(len(data))
-	p.Write(data)
+	p.Content.Write(data)
 
 	endPacket := packet.Get()
 	endPacket.Metadata.Id = sendTopic
 	endPacket.Metadata.Operation = PUB
 	endPacket.Metadata.ContentLength = uint32(len(END))
-	endPacket.Write(END)
+	endPacket.Content.Write(END)
 
 	log.Printf("[SENDER] Running benchmark with Message Size %d, Messages per Run %d, and Num Runs %d\n", messageSize, testSize, runs)
 
