@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	benchmark "github.com/loopholelabs/frisbee-benchmarks/grpc-benchmark/frisbee/proto"
 	"github.com/loov/hrtime"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
 	"math/rand"
 	"os"

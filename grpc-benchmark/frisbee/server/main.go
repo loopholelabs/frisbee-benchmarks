@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
+	benchmark "github.com/loopholelabs/frisbee-benchmarks/grpc-benchmark/frisbee/proto"
 	"log"
 	"os"
 	"os/signal"
