@@ -35,10 +35,8 @@ github.com/klauspost/compress v1.11.12/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdY
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/loopholelabs/frisbee v0.2.1-0.20220316223359-e26b399550c2 h1:ZHmwQAtMjQrC/fLPhhYpACCzoDlCTd/1jY0dfsHtrZM=
-github.com/loopholelabs/frisbee v0.2.1-0.20220316223359-e26b399550c2/go.mod h1:4JI5RT9d1SZLvt3Gg+YOoa2iZZDdmqMHqIetsARFgBA=
-github.com/loopholelabs/frisbee v0.3.1 h1:L/bsKVaHNeqU6tztu++3dNoavJ9ND6ihRMbg4KVYazg=
-github.com/loopholelabs/frisbee v0.3.1/go.mod h1:4JI5RT9d1SZLvt3Gg+YOoa2iZZDdmqMHqIetsARFgBA=
+github.com/loopholelabs/frisbee v0.3.2 h1:N5T+FMJUJcY0yQaf4eqUq09ty9SmA+7DvXUmH6/CSbQ=
+github.com/loopholelabs/frisbee v0.3.2/go.mod h1:4JI5RT9d1SZLvt3Gg+YOoa2iZZDdmqMHqIetsARFgBA=
 github.com/loopholelabs/testing v0.2.3 h1:4nVuK5ctaE6ua5Z0dYk2l7xTFmcpCYLUeGjRBp8keOA=
 github.com/loopholelabs/testing v0.2.3/go.mod h1:gqtGY91soYD1fQoKQt/6kP14OYpS7gcbcIgq5mc9m8Q=
 github.com/loov/hrtime v1.0.3 h1:LiWKU3B9skJwRPUf0Urs9+0+OE3TxdMuiRPOTwR0gcU=
@@ -77,6 +75,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 go.buf.build/grpc/go/loopholelabs/frisbee-benchmark v1.2.1 h1:NdFvCxhwkf2/3h9C9QVpCKXvQCpxYCbKVp467dbky30=
 go.buf.build/grpc/go/loopholelabs/frisbee-benchmark v1.2.1/go.mod h1:0K6g5KIYJvFr6a1tBYEL+FuCJbTs5dOpFwZIXSC9qHQ=
+go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark v1.3.1 h1:2sLeUME7wUNY4+XpioZQINsqundqZnKmAz4y9+6LT9Q=
+go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark v1.3.1/go.mod h1:V7VYK3bnThVM/jFwsIldSkbiE1IP/Zk4WRG3ZRk+yYs=
 go.uber.org/atomic v1.7.0 h1:ADUqmZGgLDDfbSL9ZmPxKTybcoEYHgpYfELNoN+7hsw=
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/goleak v1.1.12 h1:gZAh5/EyT/HQwlpkCy6wTpqfH9H8Lz8zbm3dZh+OyzA=

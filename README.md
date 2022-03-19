@@ -14,9 +14,8 @@ with `go run receiver/main.go localhost:4222` and `go run sender/main.go localho
 
 ### Frisbee Side
 
-To start the Frisbee benchmark, you need to start the broker, receiver, and sender in that order (the receiver and senders will error out if they are unable to 
+To start the Frisbee benchmark, you need to start the broker, receiver, and sender in that order (the receiver and senders will error out if they are unable to
 connect to a Frisbee server). You can start them like so:
-
 
 ```shell
 go run broker/main.go # Will run on 0.0.0.0:8192 by default
