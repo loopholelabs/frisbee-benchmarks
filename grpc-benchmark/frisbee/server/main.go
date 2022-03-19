@@ -26,25 +26,35 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	shouldLog := len(os.Args) > 2
+
 	err = server.Start()
 	if err != nil {
 		panic(err)
 	}
 
-	for {
-		select {
-		case <-exit:
-			err = server.Shutdown()
-			if err != nil {
-				panic(err)
+	if shouldLog {
+		for {
+			select {
+			case <-exit:
+				err = server.Shutdown()
+				if err != nil {
+					panic(err)
+				}
+				return
+			default:
+				log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
+				time.Sleep(time.Millisecond * 500)
 			}
-			return
-		default:
-			log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
-			time.Sleep(time.Millisecond * 500)
+
 		}
-
+	} else {
+		<-exit
+		err = server.Shutdown()
+		if err != nil {
+			panic(err)
+		}
+		return
 	}
-
-	return
 }

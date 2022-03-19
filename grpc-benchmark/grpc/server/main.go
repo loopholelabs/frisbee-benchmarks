@@ -27,19 +27,28 @@ func main() {
 		panic(err)
 	}
 
+	shouldLog := len(os.Args) > 2
+
 	grpcServer := grpc.NewServer()
 
 	benchmark.RegisterBenchmarkServiceServer(grpcServer, new(svc))
 
-	go func() {
+	if shouldLog {
+		go func() {
+			err = grpcServer.Serve(lis)
+			if err != nil {
+				panic(err)
+			}
+		}()
+
+		for {
+			log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
+			time.Sleep(time.Millisecond * 500)
+		}
+	} else {
 		err = grpcServer.Serve(lis)
 		if err != nil {
 			panic(err)
 		}
-	}()
-
-	for {
-		log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
-		time.Sleep(time.Millisecond * 500)
 	}
 }
