@@ -39,4 +39,4 @@ go run client/main.go "$1" 1048576 10 10 10 1
 go run client/main.go "$1" 1048576 10 10 100 1
 
 kill -9 $SERVER_PID
-pkill
+pkill main
