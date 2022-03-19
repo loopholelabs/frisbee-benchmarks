@@ -39,7 +39,7 @@ const END = "END"
 // Handle the PUB message type
 func handlePub(_ context.Context, incoming *packet.Packet) (outgoing *packet.Packet, action frisbee.Action) {
 	if incoming.Metadata.Id == receiveTopic {
-		if string(incoming.Content) == END {
+		if string(incoming.Content.B) == END {
 			incoming.Reset()
 			incoming.Metadata.Id = sendTopic
 			incoming.Metadata.Operation = PUB
