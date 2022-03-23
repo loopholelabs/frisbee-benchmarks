@@ -88,7 +88,7 @@ func main() {
 	req.Message = RandomString(messageSize)
 
 	if shouldLog {
-		log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, Num Clients %d, an Num Concurrent %d\n", messageSize, testSize, runs, numClients, numConcurrent)
+		log.Printf("[CLIENT] Running benchmark with Message Size %d, Messages per Run %d, Num Runs %d, Num Clients %d, and Num Concurrent %d\n", messageSize, testSize, runs, numClients, numConcurrent)
 	}
 
 	clients := make([]*client, 0, numClients)

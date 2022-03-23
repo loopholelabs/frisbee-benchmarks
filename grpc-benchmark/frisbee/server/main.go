@@ -19,9 +19,6 @@ func (s *svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.R
 }
 
 func main() {
-	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, os.Interrupt)
-
 	server, err := benchmark.NewServer(new(svc), os.Args[1], nil, nil)
 	if err != nil {
 		panic(err)
@@ -36,20 +33,13 @@ func main() {
 
 	if shouldLog {
 		for {
-			select {
-			case <-exit:
-				err = server.Shutdown()
-				if err != nil {
-					panic(err)
-				}
-				return
-			default:
-				log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
-				time.Sleep(time.Millisecond * 500)
-			}
-
+			log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
+			time.Sleep(time.Millisecond * 500)
 		}
 	} else {
+		exit := make(chan os.Signal, 1)
+		signal.Notify(exit, os.Interrupt)
+
 		<-exit
 		err = server.Shutdown()
 		if err != nil {
