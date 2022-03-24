@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/loopholelabs/frisbee"
 	"github.com/rs/zerolog"
 	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
@@ -28,6 +29,12 @@ func main() {
 	frisbeeServer, err := benchmark.NewServer(new(svc), nil, logger)
 	if err != nil {
 		panic(err)
+	}
+
+	if shouldLog {
+		_ = frisbeeServer.SetOnClosed(func(async *frisbee.Async, err error) {
+			logger.Error().Err(err).Msg("Error caused connection to close")
+		})
 	}
 
 	if shouldLog {
