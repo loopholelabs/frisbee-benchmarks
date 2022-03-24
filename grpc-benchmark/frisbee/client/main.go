@@ -93,12 +93,12 @@ func main() {
 
 	for i := 0; i < numClients; i++ {
 		var c *benchmark.Client
-		c, err = benchmark.NewClient(os.Args[1], nil, nil)
+		c, err = benchmark.NewClient(nil, nil)
 		if err != nil {
 			panic(err)
 		}
 
-		err = c.Connect()
+		err = c.Connect(os.Args[1])
 		if err != nil {
 			panic(err)
 		}

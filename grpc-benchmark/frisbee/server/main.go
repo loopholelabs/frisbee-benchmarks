@@ -5,7 +5,6 @@ import (
 	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
 	"os"
-	"os/signal"
 	"runtime"
 	"time"
 )
@@ -19,32 +18,29 @@ func (s *svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.R
 }
 
 func main() {
-	server, err := benchmark.NewServer(new(svc), os.Args[1], nil, nil)
+	frisbeeServer, err := benchmark.NewServer(new(svc), nil, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	shouldLog := len(os.Args) > 2
 
-	err = server.Start()
-	if err != nil {
-		panic(err)
-	}
-
 	if shouldLog {
+		go func() {
+			err = frisbeeServer.Start(os.Args[1])
+			if err != nil {
+				panic(err)
+			}
+		}()
+
 		for {
 			log.Printf("Num goroutines: %d\n", runtime.NumGoroutine())
 			time.Sleep(time.Millisecond * 500)
 		}
 	} else {
-		exit := make(chan os.Signal, 1)
-		signal.Notify(exit, os.Interrupt)
-
-		<-exit
-		err = server.Shutdown()
+		err = frisbeeServer.Start(os.Args[1])
 		if err != nil {
 			panic(err)
 		}
-		return
 	}
 }
