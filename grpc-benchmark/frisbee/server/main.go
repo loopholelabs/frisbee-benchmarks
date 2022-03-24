@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/rs/zerolog"
 	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
 	"os"
@@ -18,12 +19,16 @@ func (s *svc) Benchmark(_ context.Context, req *benchmark.Request) (*benchmark.R
 }
 
 func main() {
-	frisbeeServer, err := benchmark.NewServer(new(svc), nil, nil)
+	shouldLog := len(os.Args) > 2
+	var logger *zerolog.Logger
+	if shouldLog {
+		l := zerolog.New(os.Stdout)
+		logger = &l
+	}
+	frisbeeServer, err := benchmark.NewServer(new(svc), nil, logger)
 	if err != nil {
 		panic(err)
 	}
-
-	shouldLog := len(os.Args) > 2
 
 	if shouldLog {
 		go func() {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/loov/hrtime"
+	"github.com/rs/zerolog"
 	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
 	"log"
 	"math/rand"
@@ -93,7 +94,12 @@ func main() {
 
 	for i := 0; i < numClients; i++ {
 		var c *benchmark.Client
-		c, err = benchmark.NewClient(nil, nil)
+		var logger *zerolog.Logger
+		if shouldLog {
+			l := zerolog.New(os.Stdout)
+			logger = &l
+		}
+		c, err = benchmark.NewClient(nil, logger)
 		if err != nil {
 			panic(err)
 		}
