@@ -32,9 +32,12 @@ func main() {
 	}
 
 	if shouldLog {
-		_ = frisbeeServer.SetOnClosed(func(async *frisbee.Async, err error) {
+		err = frisbeeServer.SetOnClosed(func(async *frisbee.Async, err error) {
 			logger.Error().Err(err).Msg("Error caused connection to close")
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if shouldLog {
