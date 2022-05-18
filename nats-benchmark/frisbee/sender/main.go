@@ -49,12 +49,12 @@ func main() {
 	router[PUB] = handlePub
 
 	emptyLogger := zerolog.New(ioutil.Discard)
-	c, err := frisbee.NewClient(os.Args[1], router, context.Background(), frisbee.WithLogger(&emptyLogger))
+	c, err := frisbee.NewClient(router, context.Background(), frisbee.WithLogger(&emptyLogger))
 	if err != nil {
 		panic(err)
 	}
 
-	err = c.Connect()
+	err = c.Connect(os.Args[1])
 	if err != nil {
 		panic(err)
 	}

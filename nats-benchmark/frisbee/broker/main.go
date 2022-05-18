@@ -78,14 +78,14 @@ func main() {
 
 	emptyLogger := zerolog.New(ioutil.Discard)
 
-	s, err := frisbee.NewServer(os.Args[1], router, frisbee.WithLogger(&emptyLogger))
+	s, err := frisbee.NewServer(router, frisbee.WithLogger(&emptyLogger))
 	if err != nil {
 		panic(err)
 	}
 	s.ConnContext = func(ctx context.Context, conn *frisbee.Async) context.Context {
 		return context.WithValue(ctx, ConnKey, conn)
 	}
-	s.OnClosed = func(conn *frisbee.Async, err error) {
+	err = s.SetOnClosed(func(conn *frisbee.Async, err error) {
 		log.Printf("[BROKER] Removing subscriber with Remote IP %s\n", conn.RemoteAddr())
 		mu.Lock()
 		if m, ok := subscriptions[conn]; ok {
@@ -102,9 +102,12 @@ func main() {
 		}
 		delete(subscriptions, conn)
 		mu.Unlock()
-
+	})
+	if err != nil {
+		panic(err)
 	}
-	err = s.Start()
+
+	err = s.Start(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
