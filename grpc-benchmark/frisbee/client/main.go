@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/loov/hrtime"
 	"github.com/rs/zerolog"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
+	benchmark "go.buf.build/loopholelabs/frpc/loopholelabs/frisbee-benchmark"
 	"log"
 	"math/rand"
 	"os"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/loopholelabs/frisbee"
 	"github.com/rs/zerolog"
-	benchmark "go.buf.build/loopholelabs/frisbee/loopholelabs/frisbee-benchmark"
+	benchmark "go.buf.build/loopholelabs/frpc/loopholelabs/frisbee-benchmark"
 	"log"
 	"os"
 	"runtime"
